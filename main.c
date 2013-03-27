@@ -8,63 +8,62 @@
 ** Last update Tue Mar 26 11:24:05 2013 gery baudry
 */
 
-#include	"proto.h"
+#include	"lemipc.h"
+
+int		semid = -1;
+
+int		check_args(int ac)
+{
+  if (ac != 3)
+    {
+      printf("Usage : ./lemipc ...\n");
+      return (-1);
+    }
+  return (0);
+}
+
+int		shm_init()
+{
+  //  shmid = shm(key);
+}
+
+int		sem_init(struct play *player, char *filename, char proj, int nb)
+{
+  if (player->sem_id == -1)
+    {
+      key_t	key;
+      
+      key = ftok(filename, proj);
+      player->sem_id = semget(key, nb, 0666);
+      if (player->sem_id == -1)
+	{
+	  player->sem_id = semget(key, nb, IPC_CREAT | IPC_EXCL);
+	  if (player->sem_id == -1)
+	    {
+	      printf("Unable to create semaphore\n");
+	      exit(EXIT_FAILURE);
+	    }
+	  return (1);
+	}
+      else
+	return (0);
+    }
+  else
+    return (-1);
+}
 
 int		main(int ac, char **av)
 {
   char		map[10][10];
   char		proj;
-  key_t		cle;
-  int		nbShm;
-  int		nbSem;
-  int		semId;
   struct sembuf	op;
+  struct play	player;
 
   proj = 'p';
   map[5][6] = '#';
-  nbSem = 1;
-  nbShm = 1;
-  
-  // creation de cle
-  cle = ftok(av[0], proj);
-  // initialisation de la memoire partagee
-  
-  // construction du segment de moire partagee
-  shmId = shmget(cle, nbShm, IPC_CREAT | IPC_EXCL);
-
-  
-
-
-
-
-// creation du semaphore
-  semId = semget(cle, nbSem, IPC_CREAT | IPC_EXCL | 0666);
-  semctl(semId, 0, SETVAL, 1);
-  
-  op.sem_num = 0;
-  op.sem_op = -1;
-  op.sem_flg = 0;
-  
-  semop(semId, &op, 1);
-  // section critique
-  op.sem_op = 1;
-  semop(semId, &op, 1);
-
-  semctl(semId, 0, IPC_RMID, 0); // destruction du semaphore
-
+  player.sem_id = -1;
+  if (check_args(ac) == -1)
+    return (-1);
+  sem_init(&player, av[0], proj, 1);
   return (0);
 }
-
-
-/*
-  if (ac != 3)
-  {
-  printf("Usage : ./lemipc ...\n");
-  return (-1);
-  }
-  else
-  {
-  //run
-  //printf("%c\n", map[5][6]);
-  }
-*/

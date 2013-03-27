@@ -1,10 +1,20 @@
-/*
-** lemipc.h for LEMIPC in /home/peelou/SVN
-** 
-** Made by gery baudry
-** Login   <baudry_g@epitech.net>
-** 
-** Started on  Tue Mar 26 11:26:38 2013 gery baudry
-** Last update Tue Mar 26 11:26:43 2013 gery baudry
-*/
+#ifndef		__LEMIPC_H__
+#define		__LEMIPC_H__
 
+#include	<pthread.h>
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<sys/types.h>
+#include	<sys/ipc.h>
+#include	<sys/sem.h>
+#include	<sys/shm.h>
+
+struct	play
+{
+
+  int	sem_id;
+  int	shm_id;
+
+};
+
+#endif
