@@ -1,0 +1,112 @@
+--Création d'une clé :
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+
+key_t ftok (char *pathname, char proj )
+
+--Exemple
+
+# include <sys/types.h>
+# include <sys/ipc.h>
+#define ID_PROJET 'P'
+
+int main(int argc, char **argv)
+{
+    key_t clef;
+    clef = ftok(argv[0], ID_PROJET);
+    return 0;
+}
+
+____________________________________________
+
+--Création d'un sémaphore :
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
+int semget ( key_t key, int nsems, int semflg )
+
+--Exemple :
+
+# include<sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#define ID_PROJET 'P'
+
+int main(int argc, char **argv)
+{
+    key_t clef;
+    int semid;
+    clef = ftok(argv[0], ID_PROJET);
+    semid = semget(clef, 1, IPC_CREAT | IPC_EXCL | 0666);
+    return 0;
+}
+
+_______________________________________________
+
+--Initialisation Sémaphore :
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
+int semctl ( int semid, int semno, int cmd, union semun arg )
+
+--Exemple :
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#define ID_PROJET 'P'
+
+int main(int argc, char **argv)
+{
+    key_t clef;
+    int semid;
+    clef = ftok(argv[0], ID_PROJET);
+    semid = semget(clef, 1, IPC_CREAT | IPC_EXCL | 0666);
+    semctl(semid, 0, SET_VAL, 1);
+    return 0;
+}
+
+__________________________________________________
+
+--Equivalent P() down() :
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
+int semop ( int semid, struct sembuf *sops, unsigned nsops )
+
+--Exemple :
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#define ID_PROJET 'P'
+
+int main(int argc, char **argv)
+{
+    key_t clef;
+    int semid;
+    sembuf op;
+
+    clef = ftok(argv[0], ID_PROJET);
+    semid = semget(clef, 1, IPC_CREAT | IPC_EXCL | 0666);
+    semctl(semid, 0, SET_VAL, 1);
+
+    op.sem_num = O; //Numéro de notre sémaphore: le premier et le seul
+    op.sem_op = -1; //Pour un P() on décrémente
+    op.sem_flg = 0; //On s'en occupe pas
+
+    semop(semid, &op, 1);
+    //Zone critique
+    //.......
+
+    return 0;
+}
+
+__________________________________________________
