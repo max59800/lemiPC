@@ -22,48 +22,37 @@ int		check_args(int ac)
   return (0);
 }
 
-int		shm_init()
-{
-  //  shmid = shm(key);
-}
-
-int		sem_init(struct play *player, char *filename, char proj, int nb)
-{
-  if (player->sem_id == -1)
-    {
-      key_t	key;
-      
-      key = ftok(filename, proj);
-      player->sem_id = semget(key, nb, 0666);
-      if (player->sem_id == -1)
-	{
-	  player->sem_id = semget(key, nb, IPC_CREAT | IPC_EXCL);
-	  if (player->sem_id == -1)
-	    {
-	      printf("Unable to create semaphore\n");
-	      exit(EXIT_FAILURE);
-	    }
-	  return (1);
-	}
-      else
-	return (0);
-    }
-  else
-    return (-1);
-}
-
 int		main(int ac, char **av)
 {
-  char		map[10][10];
-  char		proj;
-  struct sembuf	op;
-  struct play	player;
+  key_t		key;
+  int           sem_id;
+  struct sembuf	sops;
 
-  proj = 'p';
-  map[5][6] = '#';
-  player.sem_id = -1;
   if (check_args(ac) == -1)
     return (-1);
-  sem_init(&player, av[0], proj, 1);
+  key = ftok(av[1], 0);
+  printf("key = [%d]\n", key);
+
+  sem_id = semget(key, 1, SHM_R | SHM_W);
+  if (sem_id == -1)
+    {
+      sem_id = semget(key, 1, IPC_CREAT | SHM_R | SHM_W);
+      printf("sem_id = [%d]\n", sem_id);
+      semctl(sem_id, 0, SETVAL, 4);
+    }
+  else
+    {
+      printf("Already exist\n");
+      sops.sem_num = 0;
+      sops.sem_op = -1;
+      sops.sem_flg = 0;
+      semop(sem_id, &sops, 1);
+      printf("value = %d\n", semctl(sem_id, 0, GETVAL));
+    }
+  if (semctl(sem_id, 0, GETVAL) == 0)
+    {
+       printf("All the players are here");
+       return (-1);
+    }
   return (0);
 }
